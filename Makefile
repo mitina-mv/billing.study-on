@@ -1,4 +1,4 @@
-COMPOSE=docker-compose
+COMPOSE=docker compose
 PHP=$(COMPOSE) exec php
 CONSOLE=$(PHP) bin/console
 COMPOSER=$(PHP) composer
@@ -20,5 +20,8 @@ migrate:
 
 fixtload:
 	@${CONSOLE} doctrine:fixtures:load
+	
+require:
+	@${COMPOSER} require $2
 	
 -include local.mk
