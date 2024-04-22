@@ -1,0 +1,2 @@
+entity:
+	@${CONSOLE} make:entity
