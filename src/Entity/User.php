@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\DTO\UserDto;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactory;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -120,5 +122,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->balance = $balance;
 
         return $this;
+    }
+
+    public static function convertDtoToUser(UserDto $userDto) : User
+    {
+        $user = new self();
+
+        $user->setRoles(['ROLE_USER']);
+        $user->setEmail($userDto->username);
+        $user->setBalance(0);
+
+        $factory = new PasswordHasherFactory([
+            'common' => ['algorithm' => 'bcrypt']
+        ]);
+        $hasher = $factory->getPasswordHasher('common');
+        $password = $hasher->hash($userDto->password);
+        $user->setPassword($password);
+
+        return $user;
     }
 }

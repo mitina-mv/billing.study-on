@@ -22,6 +22,10 @@ security:
             pattern: ^/api
             stateless: true
             jwt: ~
+
+        register:
+            pattern: ^api/v1/register
+            stateless: true
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
