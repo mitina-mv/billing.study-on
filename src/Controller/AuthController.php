@@ -52,6 +52,18 @@ class AuthController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
+        $user = $em->getRepository(User::class)
+            ->findOneBy(['email' => $dto->username]);
+
+        if ($user !== null) {
+            return new JsonResponse([
+                'code' => 401,
+                'errors' => [
+                    "unique" => 'Email должен быть уникальным.'
+                ]
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
         $user = User::convertDtoToUser($dto);
         $em->persist($user);
         $em->flush();
