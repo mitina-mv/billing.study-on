@@ -79,5 +79,9 @@
             "require": "7.0.*",
             "docker": true
         }
+    },
+    "require-dev": {
+        "symfony/browser-kit": "7.0.*",
+        "symfony/dom-crawler": "7.0.*"
     }
 }

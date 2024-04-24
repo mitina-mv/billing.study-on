@@ -9,6 +9,7 @@ use JMS\Serializer\Annotation as Serializer;
 
 class UserDto
 {
+    // TODO объъект не инициализируется
     /*
     private ManagerRegistry $doctrine;
 

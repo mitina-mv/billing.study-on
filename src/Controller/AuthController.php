@@ -188,7 +188,7 @@ class AuthController extends AbstractController
             return new JsonResponse([
                 'code' => Response::HTTP_BAD_REQUEST,
                 'errors' => [
-                    "unique" => 'Email должен быть уникальным.'
+                    "username" => 'Email должен быть уникальным.'
                 ]
             ], Response::HTTP_BAD_REQUEST);
         }
