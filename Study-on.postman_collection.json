@@ -1,0 +1,85 @@
+{
+	"info": {
+		"_postman_id": "b9f27f48-6337-44b2-a438-8b22543c2f2d",
+		"name": "Study-on",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14361202"
+	},
+	"item": [
+		{
+			"name": "billing",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"user@email.example\",\r\n    \"password\":\"user@email.example\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://billing.study-on.loc/api/v1/register",
+							"protocol": "http",
+							"host": [
+								"billing",
+								"study-on",
+								"loc"
+							],
+							"path": [
+								"api",
+								"v1",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"user@email.example\",\r\n    \"password\":\"user@email.example\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://billing.study-on.loc/api/v1/auth",
+							"protocol": "http",
+							"host": [
+								"billing",
+								"study-on",
+								"loc"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get current user",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -1,4 +1,4 @@
-COMPOSE=docker-compose
+COMPOSE=docker compose
 PHP=$(COMPOSE) exec php
 CONSOLE=$(PHP) bin/console
 COMPOSER=$(PHP) composer
@@ -20,5 +20,17 @@ migrate:
 
 fixtload:
 	@${CONSOLE} doctrine:fixtures:load
+	
+require:
+	@${COMPOSER} require $2
+
+phpunit:
+	@${PHP} bin/phpunit
+	
+reset-sequences:
+	@${CONSOLE} app:reset-sequences --env=test
+
+test:
+	make reset-sequences && make phpunit
 	
 -include local.mk
