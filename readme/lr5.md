@@ -8,7 +8,7 @@
     ```
     Дополнительно с помощью `make entity` добавить поле balance типа float. [Результирующий файл](/src/Entity/User.php)
 - Создание фикстуры, базы данных, миграций. Применение фикстуры.
-Важно! Моя фикстура не имеет конструктора, хеширует пароль через PasswordHasherFactory.
+! Важно. Моя фикстура не имеет конструктора, хеширует пароль через PasswordHasherFactory.
 - Создание тестовой БД, применение миграций.
     ```
     docker compose exec php bin/console doctrine:database:create --env=test
@@ -53,77 +53,30 @@ security:
         - { path: ^/api/v1,           roles: IS_AUTHENTICATED_FULLY }
 ```
 - Создаем метод GET /api/v1/users/current в контроллере
-- Для того, чтобы обеспечить возвращение ответа в виде json всегда, даже при 40х и 5хх ошибках, создала прослушивателя [App\EventListener\ExceptionListener](/src/EventListener/ExceptionListener.php). Его нужно зарегистрировать в /config/services.yaml
+- ! Важно. Для того, чтобы обеспечить возвращение ответа в виде json всегда, даже при 40х и 5хх ошибках, создала прослушивателя [App\EventListener\ExceptionListener](/src/EventListener/ExceptionListener.php). Его нужно зарегистрировать в /config/services.yaml
 ```
 services:
     App\EventListener\ExceptionListener:
         tags:
             - { name: kernel.event_listener, event: kernel.exception }
 ```
-
-
-
-
-1. Готовый класс AbstractTest:
-
-Проблемы:
-- Класс ContainerAwareInterface вероятно устарел
-    [issue](https://github.com/symfony/symfony-docs/issues/18440)
-
-    В файле Undefined type, но почему-то работает, хотя класса в vendor не нашла, на гитхабе в текущей версии компонента тоже нет класса
-    [symfony repository](https://github.com/symfony/symfony/tree/7.0/src/Symfony/Component/DependencyInjection)
-
-- Метод getClient не переопределяется с указанной сигнатурой
-    ```
-    protected static function getClient($reinitialize = false, array $options = [], array $server = [])
-    ```
-    Ошибка: Method 'App\Tests\AbstractTest::getClient()' is not compatible with method 'Symfony\Bundle\FrameworkBundle\Test\WebTestCase::getClient()'.
-
-    Был создан метод createTestClient, рабочий, но не согласованный.
-
-2. Пишем тесты:
-
-Проблемы: 
-- Не обнуляются SEQUENCE в БД, фикструры загружаются каждый раз с новым ID.
-
-    Для очистки БД была загружена зависимость `dama/doctrine-test-bundle`, но проблему не решило почему-то.
-
-    TODO для правильной работы с ID в тестах были произведелны вручную настройки сиквансов в тестовой БД: ограничила максимум по количеству уроков/курсов соотв., включила зацикливание назначения Id. Но это плохо.
-
-    Тут есть какой-то issue на тему,наверное, но я ничего не поняла
-    [issue 2](https://github.com/doctrine/orm/issues/8893)
-
-    Создала для обнуления сиквансов команду, но из-за нее перестали запускаться тесты с очень странной ошибкой ( Не найден файл фикса для БД FixPostgreSQLDefaultSchemaListener). Команда работала, но обнуляла в БД на проде :\ Пришлось удалить, но есть коммит. 
-
-- В какой-то момент появилась ошибка
-    ```
-    App\Tests\CourseFunctionaltest::testHasLinkToDetailCourse
-    LogicException: Booting the kernel before calling "Symfony\Bundle\FrameworkBundle\Test\WebTestCase::createClient()" is not supported, the kernel should only be booted once.
-    ```
-
-    Она возникает на любом методе, который запускается первым... Как починить не знаю, после чего появилась - тоже не знаю (
-
-    UPD: сиквансы зло! Ошибка пропала, после того, как в классах проверки страниц были убраны запросы курса/урока.
-- Иногда бывает ошибка в классах *PagesTest, если не находится элемент по id. Но при новом запуске все живет.
-
-## FIX от 22.04.24
-Ранее для тестов была настроена тестовая БД особым образом:
-- ограничение на максимальное значение сикванса
-- включенение зацикливания при выдаче сиквансов.
-
-Для ухода от этого была создана команла для обнуления сиквансов: [ResetSequencesCommand](/src/Command/ResetSequencesCommand.php)
-
-Но она работала на продовскую БД. По совету Руководите проекта было прописано выполнение команды в тестовой среде через --env=test. Итогом стали дополнения в make-файл:
-
+## 4. Документирование API
+- делаем все по плану занятий
+- ! Важно. После изменения config/routes/nelmio_api_doc.yaml моя страница с докой все равно была недоступна  (404). Это не было связано с созданным ранее прослушивателем, для исправления в config/routes.yaml пришлось прописать:
 ```
-phpunit:
-	@${PHP} bin/phpunit
-
-reset-sequences:
-	@${CONSOLE} app:reset-sequences --env=test
-
-test:
-	make reset-sequences && make phpunit
+app.swagger_ui:
+    path: /api/v1/doc
+    methods: GET
+    defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
 ```
 
-И это работает, но было выявлено, что обнуление сиквансов желательно выполнять перед каждым тестом, потому что сейчас оно обнуляет перед процессом, но они нарастают с каждым тестом. Поэтому на данном этапе отказаться от предыдущих настроек БД нельзя, но зато теперь снижено количество ошибок при прогоне тестов.
+## 5. Тестирование
+- Копируем AbstractTest из проекта studyOn. Ошибки, которые возникли у меня, совпадают с описанными в lr4.md
+- Создаем файлик теста
+- Тест-кейсы:
+    * Удачная авторизация
+    * Неудачная авторизация (несуществующий логин, неверный пароль)
+    * Успешная регистрация
+    * Неудачная регистрация (существующая почта, пустые поля, пароль короче 6 сим.)
+    * Успешное получение текущего пользователя
+    * Неудачное получение текущего пользователя (невалидный токен, запрос без токена)

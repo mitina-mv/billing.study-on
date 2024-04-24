@@ -56,7 +56,7 @@ class UserTest extends AbstractTest
     }
 
     // неуданое получение текущего пользователя
-    // по невалидному токену
+    // по невалидному токену или без него
     public function testCurrentUsersFail(): void
     {
         $client = $this->createTestClient();
