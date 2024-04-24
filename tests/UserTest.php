@@ -76,5 +76,15 @@ class UserTest extends AbstractTest
 
         $this->assertResponseCode(401);
         $this->assertEquals('Invalid JWT Token', $content['message']);
+    
+        $client->request(
+            'GET',
+            '/api/v1/users/current',
+        );
+
+        $content = json_decode($client->getResponse()->getContent(), true);
+
+        $this->assertResponseCode(401);
+        $this->assertEquals('JWT Token not found', $content['message']);
     }
 }
