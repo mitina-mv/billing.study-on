@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\DTO\UserDto;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerBuilder;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +30,7 @@ class AuthController extends AbstractController
     {
     }
 
-    #[Route('/register', name: 'api_auth', methods: ['POST'])]
+    #[Route('/register', name: 'api_register', methods: ['POST'])]
     public function register(
         Request $request,
         EntityManagerInterface $em,
@@ -47,9 +46,9 @@ class AuthController extends AbstractController
                 $jsonErrors[$error->getPropertyPath()] = $error->getMessage();
             }
             return new JsonResponse([
-                'code' => 401,
+                'code' => 400,
                 'errors' => $jsonErrors
-            ], Response::HTTP_UNAUTHORIZED);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $user = $em->getRepository(User::class)
@@ -57,11 +56,11 @@ class AuthController extends AbstractController
 
         if ($user !== null) {
             return new JsonResponse([
-                'code' => 401,
+                'code' => 400,
                 'errors' => [
                     "unique" => 'Email должен быть уникальным.'
                 ]
-            ], Response::HTTP_UNAUTHORIZED);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $user = User::convertDtoToUser($dto);
@@ -72,5 +71,25 @@ class AuthController extends AbstractController
             'token' => $jwtManager->create($user),
             'roles' => $user->getRoles(),
         ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/users/current', name: 'api_current', methods: ['GET'])]
+    public function getCurrentUser(): JsonResponse
+    {
+        // TODO ошибка 401 возвращается преищумественное от JWT токена
+        // возможно, проверка лишняя
+        if ($this->getUser() === null) {
+            return new JsonResponse([
+                'code' => 401,
+                "message" => 'Пользователь неавторизован.'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return new JsonResponse([
+            'code' => 200,
+            'username' => $this->getUser()->getEmail(),
+            'roles' => $this->getUser()->getRoles(),
+            'balance' => $this->getUser()->getBalance(),
+        ], Response::HTTP_OK);
     }
 }
