@@ -280,4 +280,9 @@ class AuthController extends AbstractController
             'balance' => $this->getUser()->getBalance(),
         ], Response::HTTP_OK);
     }
+
+    #[Route('/token/refresh', name: 'api_refresh', methods: ['POST'])]
+    public function refresh(): void
+    {
+    }
 }
