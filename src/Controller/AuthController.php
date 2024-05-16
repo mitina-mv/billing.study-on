@@ -294,6 +294,13 @@ class AuthController extends AbstractController
     }
 
     #[Route('/token/refresh', name: 'api_refresh', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/v1/token/refresh',
+        summary: "Обновление JWT-токена"
+    )]
+    #[OA\Tag(
+        name: "User"
+    )]
     public function refresh(): void
     {
     }

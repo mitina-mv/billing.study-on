@@ -20,7 +20,9 @@ security:
         api:
             pattern: ^/api
             stateless: true
-            jwt: ~
+            # jwt: ~
+            refresh_jwt:
+                check_path: /api/v1/token/refresh
 
         register:
             pattern: ^api/v1/register
