@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\DTO\UserDto;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use JMS\Serializer\SerializerBuilder;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 
 #[Route('/api/v1')]
 class AuthController extends AbstractController
@@ -165,6 +167,8 @@ class AuthController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         JWTTokenManagerInterface $jwtManager,
+        RefreshTokenGeneratorInterface $refreshTokenGenerator,
+        RefreshTokenManagerInterface $refreshTokenManager,
     ) : JsonResponse {
         $serializer = SerializerBuilder::create()->build();
         $dto = $serializer->deserialize($request->getContent(), UserDto::class, 'json');
@@ -197,10 +201,18 @@ class AuthController extends AbstractController
         $em->persist($user);
         $em->flush();
 
+        // добавляем refresh token
+        $refreshToken = $refreshTokenGenerator->createForUserWithTtl(
+            $user,
+            (new \DateTime())->modify('+1 month')->getTimestamp()
+        );
+        $refreshTokenManager->save($refreshToken);
+
         return new JsonResponse([
             'token' => $jwtManager->create($user),
             'roles' => $user->getRoles(),
-            'code' => Response::HTTP_CREATED
+            'code' => Response::HTTP_CREATED,
+            'refresh_token' => $refreshToken->getRefreshToken(),
         ], Response::HTTP_CREATED);
     }
 
