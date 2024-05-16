@@ -30,7 +30,7 @@ class Transaction
     #[ORM\Column]
     private ?\DateTimeImmutable $create_at = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $expires_at = null;
 
     public function getId(): ?int
