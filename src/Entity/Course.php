@@ -108,4 +108,18 @@ class Course
 
         return $this;
     }
+
+    public function getTypeName(): string
+    {
+        switch ($this->type) {
+            case 1:
+                return 'free';
+            case 2:
+                return 'rent';
+            case 3:
+                return 'buy';
+            default:
+                return 'unknown';
+        }
+    }
 }
