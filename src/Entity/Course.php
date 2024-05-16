@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helpers\ToArrayTrait;
 use App\Repository\CourseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,6 +14,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[UniqueEntity(fields: ['code'], message: "Поле символьного кода должно быть уникальным!")]
 class Course
 {
+    use ToArrayTrait;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -120,6 +123,20 @@ class Course
                 return 'buy';
             default:
                 return 'unknown';
+        }
+    }
+
+    
+
+    public function setTypeName()
+    {
+        switch ($this->type) {
+            case 'free':
+                return $this->setType(1);
+            case 'rent':
+                return $this->setType(2);
+            case 'buy':
+                return $this->setType(3);
         }
     }
 }

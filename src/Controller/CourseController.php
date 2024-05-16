@@ -8,20 +8,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/v1')]
 class CourseController extends AbstractController
 {
-    private $serializer;
-    private $courseRepository;
+    private $removeFieldsToArray = ['id', 'transactions'];
     
     public function __construct(
-        SerializerInterface $serializer,
-        CourseRepository $courseRepository,
+        private CourseRepository $courseRepository,
     ) {
-        $this->courseRepository = $courseRepository;
-        $this->serializer = $serializer;
     }
 
     #[Route('/courses', name: 'api_courses', methods: ['GET'])]
@@ -31,8 +26,12 @@ class CourseController extends AbstractController
         $result = [];
 
         foreach ($courses as $course) {
-            $item = $this->serializer->serialize($course, 'null');
+            $item = $course->toArray();
             $item['type'] = $course->getTypeName();
+
+            foreach ($this->removeFieldsToArray as $code) {
+                unset($item[$code]);
+            }
 
             $result[] = $item;
         }
@@ -51,12 +50,18 @@ class CourseController extends AbstractController
         if (empty($course)) {
             return new JsonResponse([
                 'code' => 401,
-                'message' => 'Курс не найден'
+                'errors' => [
+                    'course' => 'Курс не найден'
+                ]
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $result = $this->serializer->normalize($course, null);
+        $result = $course->toArray();
         $result['type'] = $course->getTypeName();
+
+        foreach ($this->removeFieldsToArray as $code) {
+            unset($result[$code]);
+        }
         
         return new JsonResponse($result, Response::HTTP_OK);
     }

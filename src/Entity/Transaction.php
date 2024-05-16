@@ -109,4 +109,26 @@ class Transaction
 
         return $this;
     }
+
+    public function getTypeName()
+    {
+        switch ($this->type) {
+            case 1:
+                return 'payment';
+            case 2:
+                return 'deposit';
+            default:
+                return 'unknown';
+        }
+    }
+
+    public function setTypeName()
+    {
+        switch ($this->type) {
+            case 'payment':
+                return $this->setType(1);
+            case 'deposit':
+                return $this->setType(2);
+        }
+    }
 }
