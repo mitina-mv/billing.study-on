@@ -16,7 +16,7 @@ class PaymentService
     ) {
     }
 
-    public function payment(User $user, Course $course): array
+    public function payment(User $user, Course $course): Transaction
     {
         $this->em->getConnection()->beginTransaction();
         try {
@@ -46,19 +46,38 @@ class PaymentService
 
             $this->em->persist($transaction);
             $this->em->flush();
+            
             $this->em->getConnection()->commit();
 
-            $result = [
-                'success' => true,
-                'course_type' => $courseType,
-            ];
+            return $transaction;
+        } catch (\Exception $e) {
+            $this->em->getConnection()->rollBack();
+            throw $e;
+        }
+    }
 
-            if ($courseType === 'rent') {
-                $result['expires_at'] = date_format($transaction->getExpiresAt(), "Y-m-dTH:i:s");
-            }
+    public function deposit(User $user, float $amount): Transaction
+    {
+        $this->em->getConnection()->beginTransaction();
+        try {
+            $transaction = new Transaction();
+            $currentData = new \DateTimeImmutable('now');
 
-            return $result;
-        } catch (ORMException | \Exception $e) {
+            $transaction->setClient($user);
+            $transaction->setTypeName('deposit');
+            $transaction->setAmount($amount);
+            $transaction->setCreateAt($currentData);
+
+            $user->setBalance($user->getBalance() + $amount);
+
+            $this->em->persist($user);
+            $this->em->persist($transaction);
+            $this->em->flush();
+
+            $this->em->getConnection()->commit();
+
+            return $transaction;
+        } catch (\Exception $e) {
             $this->em->getConnection()->rollBack();
             throw $e;
         }
