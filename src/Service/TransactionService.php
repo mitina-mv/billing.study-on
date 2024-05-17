@@ -25,7 +25,8 @@ class TransactionService
         }
 
         if (!empty($filters['course_code'])) {
-            $queryBuilder->andWhere('t.code = :code')
+            $queryBuilder->innerJoin('t.course', 'c', 'WITH', 'c.id = t.course')
+                ->andWhere('c.code = :code')
                 ->setParameter('code', $filters['course_code']);
         }
 
@@ -37,6 +38,14 @@ class TransactionService
                  ->setParameter('currentDate', $currentData);
         }
 
-        return $queryBuilder->getQuery()->getResult();
+        if (!empty($filters['client'])) {
+            $queryBuilder->andWhere('t.client = :client')
+                         ->setParameter('client', $filters['client']);
+        }
+
+        return $queryBuilder
+            ->orderBy('t.create_at', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

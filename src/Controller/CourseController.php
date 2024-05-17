@@ -7,6 +7,7 @@ use App\Repository\CourseRepository;
 use App\Repository\TransactionRepository;
 use App\Service\PaymentService;
 use App\Service\TransactionService;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,27 +77,46 @@ class CourseController extends AbstractController
         PaymentService $paymentService,
         TransactionService $transactionService,
     ): JsonResponse {
+        if ($this->getUser() === null) {
+            return new JsonResponse([
+                'code' => 401,
+                "errors" => [
+                    'unauthorized'=>'Пользователь неавторизован.'
+                ]
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $course = $this->courseRepository->findOneBy(['code' => $request->get('code')]);
+        $user = $this->getUser();
 
         if (empty($course)) {
             return new JsonResponse([
-                'code' => 401,
+                'code' => Response::HTTP_BAD_REQUEST,
                 'errors' => [
                     'course' => 'Курс не найден'
                 ]
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // проверяю что пользователь не совершал действия покупки с этим курсом
+        // проверяю что пользователь не совершал актуальных действия покупки с этим курсом
         $transactions = $transactionService->filter([
-            'client' => $this->getUser(),
+            'client' => $user->getId(),
             'course_code' => $request->get('code'),
             'type' => 'payment',
             'skip_expired' => true
         ]);
 
+        if (count($transactions) !== 0) {
+            return new JsonResponse([
+                'code' => Response::HTTP_BAD_REQUEST,
+                'errors' => [
+                    'course' => 'Доступ к курсу актуален. Оплата не требуется.'
+                ]
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         try {
-            $result = $paymentService->payment($this->getUser(), $course);
+            $result = $paymentService->payment($user, $course);
         } catch (PaymentException $e) { // ошибка оплаты
             $error = [
                 'mes' => $e->getMessage(),
