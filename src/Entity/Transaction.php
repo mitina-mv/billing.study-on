@@ -9,6 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 class Transaction
 {
+    public const TYPE_NAMES = [
+        'payment' => 1,
+        'deposit' => 2
+    ];
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

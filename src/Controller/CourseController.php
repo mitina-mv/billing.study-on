@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Exception\PaymentException;
 use App\Repository\CourseRepository;
+use App\Repository\TransactionRepository;
 use App\Service\PaymentService;
+use App\Service\TransactionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -71,7 +73,8 @@ class CourseController extends AbstractController
     #[Route('/courses/{code}/pay', name: 'api_course_pay', methods: ['POST'])]
     public function pay(
         Request $request,
-        PaymentService $paymentService
+        PaymentService $paymentService,
+        TransactionService $transactionService,
     ): JsonResponse {
         $course = $this->courseRepository->findOneBy(['code' => $request->get('code')]);
 
@@ -83,6 +86,14 @@ class CourseController extends AbstractController
                 ]
             ], Response::HTTP_BAD_REQUEST);
         }
+
+        // проверяю что пользователь не совершал действия покупки с этим курсом
+        $transactions = $transactionService->filter([
+            'client' => $this->getUser(),
+            'course_code' => $request->get('code'),
+            'type' => 'payment',
+            'skip_expired' => true
+        ]);
 
         try {
             $result = $paymentService->payment($this->getUser(), $course);
