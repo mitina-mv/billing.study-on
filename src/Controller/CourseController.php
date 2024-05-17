@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Exception\PaymentException;
 use App\Repository\CourseRepository;
+use App\Service\PaymentService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -63,6 +65,48 @@ class CourseController extends AbstractController
             unset($result[$code]);
         }
         
+        return new JsonResponse($result, Response::HTTP_OK);
+    }
+
+    #[Route('/courses/{code}/pay', name: 'api_course_pay', methods: ['POST'])]
+    public function pay(
+        Request $request,
+        PaymentService $paymentService
+    ): JsonResponse {
+        $course = $this->courseRepository->findOneBy(['code' => $request->get('code')]);
+
+        if (empty($course)) {
+            return new JsonResponse([
+                'code' => 401,
+                'errors' => [
+                    'course' => 'Курс не найден'
+                ]
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $result = $paymentService->payment($this->getUser(), $course);
+        } catch (PaymentException $e) { // ошибка оплаты
+            $error = [
+                'mes' => $e->getMessage(),
+                'code' => Response::HTTP_NOT_ACCEPTABLE
+            ];
+        } catch (\Exception $e) {
+            $error = [
+                'mes' => 'Произошла непредвиденная ошибка. Повторите запрос позже.',
+                'code' => Response::HTTP_BAD_REQUEST
+            ];
+        } finally {
+            if (isset($error)) {
+                return new JsonResponse([
+                    'code' => $error['code'],
+                    'errors' => [
+                        'payment' => $error['mes']
+                    ]
+                ], $error['code']);
+            }
+        }
+
         return new JsonResponse($result, Response::HTTP_OK);
     }
 }

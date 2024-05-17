@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Course;
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Exception\PaymentException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,10 +22,7 @@ class PaymentService
         $this->em->getConnection()->beginTransaction();
         try {
             if ($user->getBalance() < $course->getPrice()) {
-                throw new \Exception(
-                    'На счету недостаточно средств',
-                    Response::HTTP_NOT_ACCEPTABLE
-                );
+                throw new PaymentException('На счету недостаточно средств');
             }
 
             $user->setBalance($user->getBalance() - $course->getPrice());
