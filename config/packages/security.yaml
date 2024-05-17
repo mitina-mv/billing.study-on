@@ -55,7 +55,7 @@ security:
         - { path: ^/api/v1/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/courses, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1,           roles: IS_AUTHENTICATED_FULLY }
-        # - { path: ^/api/v1/courses/\w+/pay, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/v1/courses/\w+/pay, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:

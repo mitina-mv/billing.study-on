@@ -35,7 +35,7 @@ class PaymentService
             $transaction->setCourse($course);
             $transaction->setAmount($course->getPrice() ?? 0.0);
             $transaction->setClient($user);
-            $transaction->setTypeName('payment');
+            $transaction->setType(Transaction::TYPE_NAMES['payment']);
             $transaction->setCreateAt($currentData);
 
             if ($courseType === "rent") {
@@ -62,7 +62,7 @@ class PaymentService
             $currentData = new \DateTimeImmutable('now');
 
             $transaction->setClient($user);
-            $transaction->setTypeName('deposit');
+            $transaction->setType(Transaction::TYPE_NAMES['deposit']);
             $transaction->setAmount($amount);
             $transaction->setCreateAt($currentData);
 
