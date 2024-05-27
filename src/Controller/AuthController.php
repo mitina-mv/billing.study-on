@@ -120,7 +120,6 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'token', type: 'string'),
-                new OA\Property(property: 'code', type: 'string'),
                 new OA\Property(
                     property: 'roles',
                     type: 'array',
@@ -200,7 +199,6 @@ class AuthController extends AbstractController
         return new JsonResponse([
             'token' => $jwtManager->create($user),
             'roles' => $user->getRoles(),
-            'code' => Response::HTTP_CREATED
         ], Response::HTTP_CREATED);
     }
 
@@ -220,7 +218,6 @@ class AuthController extends AbstractController
         description: 'Успешное получение пользователя',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'code', type: 'string', example: 200),
                 new OA\Property(property: 'username', type: 'string'),
                 new OA\Property(
                     property: 'roles',
@@ -274,7 +271,6 @@ class AuthController extends AbstractController
         }
 
         return new JsonResponse([
-            'code' => 200,
             'username' => $this->getUser()->getEmail(),
             'roles' => $this->getUser()->getRoles(),
             'balance' => $this->getUser()->getBalance(),
