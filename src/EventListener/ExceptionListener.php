@@ -14,10 +14,12 @@ class ExceptionListener
 
         if ($exception instanceof HttpExceptionInterface) {
             $response = new JsonResponse([
+                'code' => $exception->getStatusCode(),
                 'error' => $exception->getMessage()
             ], $exception->getStatusCode());
         } else {
             $response = new JsonResponse([
+                'code' => 500,
                 'error' => $exception->getMessage()
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
