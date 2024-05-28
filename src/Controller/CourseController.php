@@ -98,6 +98,15 @@ class CourseController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        if($course->getTypeName() == 'free') {
+            return new JsonResponse([
+                'code' => Response::HTTP_BAD_REQUEST,
+                'errors' => [
+                    'course' => 'Курс бесплатный. Оплата не требуется.'
+                ]
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         // проверяю что пользователь не совершал актуальных действия покупки с этим курсом
         $transactions = $transactionService->filter([
             'client' => $user->getId(),
