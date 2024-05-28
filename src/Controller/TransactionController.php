@@ -45,7 +45,7 @@ class TransactionController extends AbstractController
                 'type' => $transaction->getTypeName(),
                 'amount' => $transaction->getAmount(),
                 'expires_at' => $transaction->getExpiresAt()
-                    ? date_format($transaction->getCreateAt(), "Y-m-dTH:i:s")
+                    ? date_format($transaction->getExpiresAt(), "Y-m-dTH:i:s")
                     : null
             ];
 
