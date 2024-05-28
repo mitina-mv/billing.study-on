@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\DTO\UserDto;
 use App\Entity\User;
+use App\Exception\PaymentException;
+use App\Service\PaymentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use JMS\Serializer\SerializerBuilder;
@@ -168,6 +170,7 @@ class AuthController extends AbstractController
         JWTTokenManagerInterface $jwtManager,
         RefreshTokenGeneratorInterface $refreshTokenGenerator,
         RefreshTokenManagerInterface $refreshTokenManager,
+        PaymentService $paymentService,
     ) : JsonResponse {
         $serializer = SerializerBuilder::create()->build();
         $dto = $serializer->deserialize($request->getContent(), UserDto::class, 'json');
@@ -206,6 +209,30 @@ class AuthController extends AbstractController
             (new \DateTime())->modify('+1 month')->getTimestamp()
         );
         $refreshTokenManager->save($refreshToken);
+
+        // добавляем баланс
+        try {
+            $paymentService->deposit($user, $_ENV['INITIAL_DEPOSIT']);
+        } catch (PaymentException $e) { // ошибка пополнения
+            $error = [
+                'mes' => $e->getMessage(),
+                'code' => Response::HTTP_NOT_ACCEPTABLE
+            ];
+        } catch (\Exception $e) {
+            $error = [
+                'mes' => 'Произошла непредвиденная ошибка. Повторите запрос позже.',
+                'code' => Response::HTTP_BAD_REQUEST
+            ];
+        } finally {
+            if (isset($error)) {
+                return new JsonResponse([
+                    'code' => $error['code'],
+                    'errors' => [
+                        'payment' => $error['mes']
+                    ]
+                ], $error['code']);
+            }
+        }
 
         return new JsonResponse([
             'token' => $jwtManager->create($user),
