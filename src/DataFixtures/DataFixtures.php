@@ -92,7 +92,9 @@ class DataFixtures extends Fixture
             $transactionEntity->setTypeName($transaction['type']);
             $transactionEntity->setClient($user);
             $transactionEntity->setCreateAt(new \DateTimeImmutable($transaction['create_at']));
-            $transactionEntity->setExpiresAt(new \DateTimeImmutable($transaction['expires_at']));
+            if ($transaction['expires_at']) {
+                $transactionEntity->setExpiresAt(new \DateTimeImmutable($transaction['expires_at']));
+            }
 
             if (isset($transaction['course_code'])) {
                 $course = $manager->getRepository(Course::class)->findOneBy(['code' => $transaction['course_code']]);

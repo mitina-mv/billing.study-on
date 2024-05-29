@@ -111,7 +111,6 @@ class CourseTest extends AbstractTest
 
         $response = $client->getResponse();
         $status = $response->getStatusCode();
-        dump($status);
 
         $this->assertTrue($status == 200);
     }
