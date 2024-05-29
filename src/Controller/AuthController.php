@@ -58,6 +58,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'token', type: 'string'),
+                new OA\Property(property: 'refresh_token', type: 'string'),
             ],
             type: 'object'
         )
@@ -320,7 +321,26 @@ class AuthController extends AbstractController
     #[Route('/token/refresh', name: 'api_refresh', methods: ['POST'])]
     #[OA\Post(
         path: '/api/v1/token/refresh',
-        summary: "Обновление JWT-токена"
+        summary: "Обновление JWT-токена",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'refresh_token', type: 'string')
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Успешное получение токена',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'token', type: 'string'),
+                new OA\Property(property: 'refresh_token', type: 'string'),
+            ],
+            type: 'object'
+        )
     )]
     #[OA\Tag(
         name: "User"
