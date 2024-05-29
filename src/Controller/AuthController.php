@@ -4,7 +4,10 @@ namespace App\Controller;
 
 use App\DTO\UserDto;
 use App\Entity\User;
+use App\Exception\PaymentException;
+use App\Service\PaymentService;
 use Doctrine\ORM\EntityManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use JMS\Serializer\SerializerBuilder;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -15,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 
 #[Route('/api/v1')]
 class AuthController extends AbstractController
@@ -54,6 +58,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'token', type: 'string'),
+                new OA\Property(property: 'refresh_token', type: 'string'),
             ],
             type: 'object'
         )
@@ -164,6 +169,9 @@ class AuthController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         JWTTokenManagerInterface $jwtManager,
+        RefreshTokenGeneratorInterface $refreshTokenGenerator,
+        RefreshTokenManagerInterface $refreshTokenManager,
+        PaymentService $paymentService,
     ) : JsonResponse {
         $serializer = SerializerBuilder::create()->build();
         $dto = $serializer->deserialize($request->getContent(), UserDto::class, 'json');
@@ -196,9 +204,42 @@ class AuthController extends AbstractController
         $em->persist($user);
         $em->flush();
 
+        // добавляем refresh token
+        $refreshToken = $refreshTokenGenerator->createForUserWithTtl(
+            $user,
+            (new \DateTime())->modify('+1 month')->getTimestamp()
+        );
+        $refreshTokenManager->save($refreshToken);
+
+        // добавляем баланс
+        try {
+            $paymentService->deposit($user, $_ENV['INITIAL_DEPOSIT']);
+        } catch (PaymentException $e) { // ошибка пополнения
+            $error = [
+                'mes' => $e->getMessage(),
+                'code' => Response::HTTP_NOT_ACCEPTABLE
+            ];
+        } catch (\Exception $e) {
+            $error = [
+                'mes' => 'Произошла непредвиденная ошибка. Повторите запрос позже.',
+                'code' => Response::HTTP_BAD_REQUEST
+            ];
+        } finally {
+            if (isset($error)) {
+                return new JsonResponse([
+                    'code' => $error['code'],
+                    'errors' => [
+                        'payment' => $error['mes']
+                    ]
+                ], $error['code']);
+            }
+        }
+
         return new JsonResponse([
             'token' => $jwtManager->create($user),
             'roles' => $user->getRoles(),
+            'code' => Response::HTTP_CREATED,
+            'refresh_token' => $refreshToken->getRefreshToken(),
         ], Response::HTTP_CREATED);
     }
 
@@ -275,5 +316,36 @@ class AuthController extends AbstractController
             'roles' => $this->getUser()->getRoles(),
             'balance' => $this->getUser()->getBalance(),
         ], Response::HTTP_OK);
+    }
+
+    #[Route('/token/refresh', name: 'api_refresh', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/v1/token/refresh',
+        summary: "Обновление JWT-токена",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'refresh_token', type: 'string')
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Успешное получение токена',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'token', type: 'string'),
+                new OA\Property(property: 'refresh_token', type: 'string'),
+            ],
+            type: 'object'
+        )
+    )]
+    #[OA\Tag(
+        name: "User"
+    )]
+    public function refresh(): void
+    {
     }
 }

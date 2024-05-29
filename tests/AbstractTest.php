@@ -66,7 +66,7 @@ abstract class AbstractTest extends WebTestCase
 
         foreach ($fixtures as $fixture) {
             if (!\is_object($fixture)) {
-                $fixture = new $fixture();
+                $fixture = new $fixture($this->getEntityManager()->getConnection());
             }
 
             if ($fixture instanceof ContainerAwareInterface) {
