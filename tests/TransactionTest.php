@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\DataFixtures\AppFixtures;
 use App\DataFixtures\DataFixtures;
 use App\Tests\Helpers\GetTokenTrait;
 
@@ -11,6 +12,6 @@ class TransactionTest extends AbstractTest
     
     protected function getFixtures(): array
     {
-        return [DataFixtures::class];
+        return [AppFixtures::class, DataFixtures::class];
     }
 }

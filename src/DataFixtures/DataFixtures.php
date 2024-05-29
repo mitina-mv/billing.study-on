@@ -8,13 +8,15 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Doctrine\DBAL\Connection;
 
 class DataFixtures extends Fixture
 {
     private static $courses = [
         [
             'code' => 'php',
-            'type' => 'free'
+            'type' => 'free',
+            'price' => 0,
         ],
         [
             'code' => 'js',
@@ -35,7 +37,7 @@ class DataFixtures extends Fixture
 
     private $transactions = [];
 
-    public function __construct()
+    public function __construct(private Connection $connection)
     {
         $this->transactions = [
             [
@@ -63,6 +65,14 @@ class DataFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        // обнуление сиквансов
+        $sequences = ['course_id_seq', 'transaction_id_seq'];
+
+        foreach ($sequences as $sequence) {
+            $sql = sprintf("SELECT setval('%s', 1, false);", $sequence);
+            $this->connection->executeQuery($sql);
+        }
+        
         foreach ($this::$courses as $course) {
             $courseEntity = new Course();
             $courseEntity->setCode($course['code']);
@@ -76,7 +86,7 @@ class DataFixtures extends Fixture
 
         $user = $manager->getRepository(User::class)->findOneBy(['email' => 'user@email.example']);
 
-        foreach ($this::$transactions as $transaction) {
+        foreach ($this->transactions as $transaction) {
             $transactionEntity = new Transaction();
             $transactionEntity->setAmount($transaction['amount']);
             $transactionEntity->setTypeName($transaction['type']);
@@ -84,12 +94,12 @@ class DataFixtures extends Fixture
             $transactionEntity->setCreateAt(new \DateTimeImmutable($transaction['create_at']));
             $transactionEntity->setExpiresAt(new \DateTimeImmutable($transaction['expires_at']));
 
-            if ($transaction['course_code']) {
+            if (isset($transaction['course_code'])) {
                 $course = $manager->getRepository(Course::class)->findOneBy(['code' => $transaction['course_code']]);
                 $transactionEntity->setCourse($course);
             }
 
-            $manager->persist($courseEntity);
+            $manager->persist($transactionEntity);
         }
 
         $manager->flush();

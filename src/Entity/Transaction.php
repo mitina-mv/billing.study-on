@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
+#[ORM\Table(name: '`transaction`')]
 class Transaction
 {
     public const TYPE_NAMES = [
@@ -127,9 +128,9 @@ class Transaction
         }
     }
 
-    public function setTypeName()
+    public function setTypeName($type)
     {
-        switch ($this->type) {
+        switch ($type) {
             case 'payment':
                 return $this->setType(1);
             case 'deposit':

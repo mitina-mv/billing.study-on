@@ -128,9 +128,9 @@ class Course
 
     
 
-    public function setTypeName()
+    public function setTypeName($type)
     {
-        switch ($this->type) {
+        switch ($type) {
             case 'free':
                 return $this->setType(1);
             case 'rent':
