@@ -3,12 +3,13 @@
 namespace App\Tests;
 
 use App\DataFixtures\AppFixtures;
+use App\DataFixtures\DataFixtures;
 
 class UserTest extends AbstractTest
 {
     protected function getFixtures(): array
     {
-        return [AppFixtures::class];
+        return [AppFixtures::class, DataFixtures::class];
     }
 
     private function getToken($client)

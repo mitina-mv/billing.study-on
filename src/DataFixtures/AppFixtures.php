@@ -34,7 +34,7 @@ class AppFixtures extends Fixture
             ->setPassword(
                 $hasher->hash('user@email.example')
             );
-        $user->setBalance(0.0);
+        $user->setBalance(300.0);
         $manager->persist($user);
 
         $user_admin = new User();

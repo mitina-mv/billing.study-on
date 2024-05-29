@@ -2,13 +2,14 @@
 
 namespace App\Tests;
 
-use App\DataFixtures\UserFixtures;
+use App\DataFixtures\AppFixtures;
+use App\DataFixtures\DataFixtures;
 
 class AuthTest extends AbstractTest
 {
     protected function getFixtures(): array
     {
-        return [UserFixtures::class];
+        return [AppFixtures::class, DataFixtures::class];
     }
 
     // успешная авторизация

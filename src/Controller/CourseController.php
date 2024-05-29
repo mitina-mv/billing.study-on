@@ -98,7 +98,7 @@ class CourseController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        if($course->getTypeName() == 'free') {
+        if ($course->getTypeName() == 'free') {
             return new JsonResponse([
                 'code' => Response::HTTP_BAD_REQUEST,
                 'errors' => [
